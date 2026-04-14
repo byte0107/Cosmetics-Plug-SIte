@@ -1,8 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
@@ -17,6 +12,18 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+
+        {/* Admin — completely separate, no Layout wrapper */}
+        <Route
+          path="/admin"
+          element={
+            <AdminGuard>
+              <Admin />
+            </AdminGuard>
+          }
+        />
+
+        {/* Public site — all inside Layout */}
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="shop" element={<Shop />} />
@@ -24,7 +31,7 @@ export default function App() {
           <Route path="bontle" element={<BontleChat />} />
           <Route path="club" element={<Club />} />
         </Route>
-        <Route path="/admin" element={<AdminGuard><Admin /></AdminGuard>} />
+
       </Routes>
     </BrowserRouter>
   );
