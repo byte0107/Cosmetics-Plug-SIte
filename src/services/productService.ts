@@ -72,8 +72,10 @@ export async function updateProduct(id: string, changes: Partial<Product>): Prom
     .from('products')
     .update(payload)
     .eq('id', id)
-    .select()
+    .select('*')
+    .limit(1)
     .single();
+
   if (error) throw error;
   return dbToProduct(data as DbProduct);
 }

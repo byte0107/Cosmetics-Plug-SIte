@@ -11,6 +11,7 @@ import ProductDetail from './pages/ProductDetail';
 import BontleChat from './pages/BontleChat';
 import Club from './pages/Club';
 import Admin from './pages/Admin';
+import AdminGuard from './components/AdminGuard';
 
 export default function App() {
   return (
@@ -23,7 +24,7 @@ export default function App() {
           <Route path="bontle" element={<BontleChat />} />
           <Route path="club" element={<Club />} />
         </Route>
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin" element={<AdminGuard><Admin /></AdminGuard>} />
       </Routes>
     </BrowserRouter>
   );
