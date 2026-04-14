@@ -111,3 +111,34 @@ export async function uploadProductImage(file: File): Promise<string> {
 
   return data.publicUrl;
 }
+export type Banner = {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  image: string;
+  position: number;
+  is_active: boolean;
+};
+
+export async function fetchBanners(): Promise<Banner[]> {
+  const { data, error } = await supabase
+    .from('banners')
+    .select('*')
+    .eq('is_active', true)
+    .order('position', { ascending: true });
+  if (error) throw error;
+  return data as Banner[];
+}
+
+export async function upsertBanner(banner: Partial<Banner> & { title: string; image: string }): Promise<void> {
+  const { error } = await supabase.from('banners').upsert({
+    ...banner,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw error;
+}
+
+export async function deleteBanner(id: string): Promise<void> {
+  const { error } = await supabase.from('banners').delete().eq('id', id);
+  if (error) throw error;
+}

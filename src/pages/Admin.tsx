@@ -11,7 +11,7 @@ const EMPTY_FORM = {
   isNew: false, isActive: true, isFeatured: false,
   isOnSale: false, isRecommended: false, stock: 0,
 };
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit';
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'banners' | 'addBanner' | 'editBanner';
 
 export default function Admin() {
   const navigate = useNavigate();
