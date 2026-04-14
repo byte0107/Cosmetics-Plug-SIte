@@ -68,12 +68,15 @@ export async function updateProduct(id: string, changes: Partial<Product>): Prom
   if (changes.isRecommended !== undefined) payload.is_recommended = changes.isRecommended;
   if ((changes as any).stock !== undefined) payload.stock         = (changes as any).stock;
 
-  const { data, error } = await supabase
+  await supabase
     .from('products')
     .update(payload)
+    .eq('id', id);
+
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
     .eq('id', id)
-    .select()
-    .limit(1)
     .single();
 
   if (error) throw error;
