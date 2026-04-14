@@ -20,13 +20,11 @@ interface AppState {
   cart: CartItem[];
   isCartOpen: boolean;
   currency: 'LSL' | 'ZAR';
-
   loadProducts: () => Promise<void>;
   addProduct: (p: Omit<Product, 'id'>) => Promise<void>;
   updateProduct: (id: string, changes: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   toggleActive: (id: string, isActive: boolean) => Promise<void>;
-
   openCart: () => void;
   closeCart: () => void;
   addToCart: (product: Product, quantity?: number) => void;
