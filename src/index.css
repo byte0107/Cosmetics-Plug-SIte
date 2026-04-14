@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #6b00ad;
+  --color-secondary: #a340f5;
+  --color-accent: #ff2d55;
+  --color-background: #ffffff;
+  
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+
+  --animate-marquee: marquee 20s linear infinite;
+
+  @keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-100%); }
+  }
+}
+
+@layer utilities {
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+body {
+  background-color: #f4f4f5;
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
