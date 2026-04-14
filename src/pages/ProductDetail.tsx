@@ -6,9 +6,9 @@ import { getAIPersonalMatch } from '../services/bontle';
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { adminProducts, addToCart, currency } = useStore();
+  const { products, addToCart, currency } = useStore();
   
-  const product = adminProducts.find(p => p.id === id);
+  const product = products.find(p => p.id === id);
   
   const [quantity, setQuantity] = useState(1);
   const [aiMatchText, setAiMatchText] = useState<string | null>(null);
