@@ -17,7 +17,7 @@ const REVIEWS = [
 ];
 
 export default function Home() {
-  const { products, currency, toggleCurrency, openCart, getCartCount } = useStore();
+  const { products = [], currency, toggleCurrency, openCart, getCartCount } = useStore();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {

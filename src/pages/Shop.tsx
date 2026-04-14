@@ -6,7 +6,7 @@ import clsx from 'clsx';
 const CATEGORIES = ['All', 'Haircare', 'Skincare', 'Makeup', 'Body'];
 
 export default function Shop() {
-  const { products, currency, addToCart } = useStore();
+  const { products = [], currency, addToCart } = useStore();
   const [activeCategory, setActiveCategory] = useState('All');
 
   const filteredProducts = activeCategory === 'All' 
