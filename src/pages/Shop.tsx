@@ -10,8 +10,8 @@ export default function Shop() {
   const [activeCategory, setActiveCategory] = useState('All');
 
   const filteredProducts = activeCategory === 'All' 
-    ? adminProducts.filter(p => p.isActive)
-    : adminProducts.filter(p => p.isActive && p.category === activeCategory);
+    ? products.filter(p => p.isActive)
+    : products.filter(p => p.isActive && p.category === activeCategory);
 
   const displayPrice = (price: number) => {
     if (currency === 'ZAR') {

@@ -27,10 +27,10 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
-  const newProducts = adminProducts.filter(p => p.isActive && p.isNew);
-  const featuredProducts = adminProducts.filter(p => p.isActive && p.isFeatured);
-  const saleProducts = adminProducts.filter(p => p.isActive && p.isOnSale);
-  const recommendedProducts = adminProducts.filter(p => p.isActive && p.isRecommended);
+  const newProducts = products.filter(p => p.isActive && p.isNew);
+  const featuredProducts = products.filter(p => p.isActive && p.isFeatured);
+  const saleProducts = products.filter(p => p.isActive && p.isOnSale);
+  const recommendedProducts = products.filter(p => p.isActive && p.isRecommended);
 
   return (
     <div className="min-h-screen bg-white">
