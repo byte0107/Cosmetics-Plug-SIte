@@ -72,7 +72,7 @@ export async function updateProduct(id: string, changes: Partial<Product>): Prom
     .from('products')
     .update(payload)
     .eq('id', id)
-    .select('*')
+    .select()
     .limit(1)
     .single();
 
@@ -91,4 +91,20 @@ export async function toggleProductActive(id: string, isActive: boolean): Promis
     .update({ is_active: isActive, updated_at: new Date().toISOString() })
     .eq('id', id);
   if (error) throw error;
+}
+export async function uploadProductImage(file: File): Promise<string> {
+  const ext      = file.name.split('.').pop();
+  const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from('product-images')
+    .upload(filename, file, { cacheControl: '3600', upsert: false });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage
+    .from('product-images')
+    .getPublicUrl(filename);
+
+  return data.publicUrl;
 }

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { Product } from '../data/products';
+import { uploadProductImage } from '../services/productService';
 
 const CATEGORIES = ['Haircare', 'Skincare', 'Makeup', 'Body'];
 const EMPTY_FORM = {
@@ -24,6 +25,7 @@ export default function Admin() {
   const [form, setForm]           = useState({ ...EMPTY_FORM });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving]       = useState(false);
+  const [uploadingImg, setUploadingImg] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [search, setSearch]       = useState('');
   const [filterCat, setFilterCat] = useState('All');
@@ -45,8 +47,8 @@ export default function Admin() {
   const onSale         = products.filter(p => p.isOnSale).length;
 
   const filtered = products.filter(p => {
-    const matchCat   = filterCat === 'All' || p.category === filterCat;
-    const matchSrch  = p.name.toLowerCase().includes(search.toLowerCase());
+    const matchCat  = filterCat === 'All' || p.category === filterCat;
+    const matchSrch = p.name.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSrch;
   });
 
@@ -69,6 +71,22 @@ export default function Admin() {
     });
     setSaveError(null);
     setView('edit');
+  }
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImg(true);
+    setSaveError(null);
+    try {
+      const url = await uploadProductImage(file);
+      setForm(prev => ({ ...prev, image: url }));
+      toast('Image uploaded ✓');
+    } catch (err: any) {
+      setSaveError('Image upload failed: ' + err.message);
+    } finally {
+      setUploadingImg(false);
+    }
   }
 
   async function handleSaveNew() {
@@ -122,14 +140,12 @@ export default function Admin() {
     catch (e: any) { toast('Delete failed: ' + e.message); }
   }
 
-  const S: Record<string, React.CSSProperties> = {
-    page:    { minHeight: '100vh', background: '#f4f4f5', display: 'flex', flexDirection: 'column' },
-    header:  { position: 'sticky', top: 0, zIndex: 30, background: '#18181b', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 },
-    backBtn: { color: 'white', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' },
-    dbBadge: (ok: boolean): React.CSSProperties => ({ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '10px', background: ok ? 'rgba(34,197,94,0.15)' : '#3f3f46', color: ok ? '#4ade80' : '#a1a1aa', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase' }),
-    dot:     (ok: boolean): React.CSSProperties => ({ width: '6px', height: '6px', borderRadius: '50%', background: ok ? '#4ade80' : '#71717a' }),
-    card:    { background: 'white', borderRadius: '20px', border: '1px solid #f4f4f5' },
-    inp:     { width: '100%', background: '#f4f4f5', border: '1px solid #e4e4e7', borderRadius: '14px', padding: '11px 14px', fontSize: '14px', fontWeight: 600, color: '#18181b', outline: 'none', boxSizing: 'border-box' as const },
+  const S: Record<string, any> = {
+    page:   { minHeight: '100vh', background: '#f4f4f5', display: 'flex', flexDirection: 'column' },
+    header: { position: 'sticky', top: 0, zIndex: 30, background: '#18181b', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 },
+    backBtn:{ color: 'white', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' },
+    card:   { background: 'white', borderRadius: '20px', border: '1px solid #f4f4f5' },
+    inp:    { width: '100%', background: '#f4f4f5', border: '1px solid #e4e4e7', borderRadius: '14px', padding: '11px 14px', fontSize: '14px', fontWeight: 600, color: '#18181b', outline: 'none', boxSizing: 'border-box' },
   };
 
   return (
@@ -144,15 +160,18 @@ export default function Admin() {
           </button>
           <div>
             <div style={{ color: 'white', fontWeight: 900, fontSize: '18px', lineHeight: 1 }}>
-              {view === 'dashboard' ? 'Shop Manager' : view === 'products' ? 'Products' : view === 'add' ? 'Add Product' : 'Edit Product'}
+              {view === 'dashboard' ? 'Shop Manager'
+                : view === 'products' ? 'Products'
+                : view === 'add' ? 'Add Product'
+                : 'Edit Product'}
             </div>
             <div style={{ color: '#71717a', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', marginTop: '2px' }}>
               Cosmetic Plug Admin
             </div>
           </div>
         </div>
-        <div style={S.dbBadge(dbConnected)}>
-          <div style={S.dot(dbConnected)} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '10px', background: dbConnected ? 'rgba(34,197,94,0.15)' : '#3f3f46', color: dbConnected ? '#4ade80' : '#a1a1aa', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase' }}>
+          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: dbConnected ? '#4ade80' : '#71717a' }} />
           {dbConnected ? 'Live DB' : 'Offline'}
         </div>
       </header>
@@ -168,7 +187,6 @@ export default function Admin() {
       {view === 'dashboard' && (
         <div style={{ flex: 1, padding: '20px', maxWidth: '960px', margin: '0 auto', width: '100%' }}>
 
-          {/* Stats */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '24px' }}>
             {[
               { title: 'Total Products', value: totalProducts,  icon: 'inventory_2',  color: '#6b00ad' },
@@ -186,16 +204,16 @@ export default function Admin() {
             ))}
           </div>
 
-          {/* Actions */}
           <p style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '12px' }}>Quick Actions</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', marginBottom: '24px' }}>
             {[
-              { icon: 'add_circle',   title: 'Add Product',  sub: 'Add to your catalogue',        fn: openAdd },
-              { icon: 'inventory_2',  title: 'All Products', sub: `${totalProducts} products`,     fn: () => setView('products') },
-              { icon: 'auto_awesome', title: 'Bontle AI',    sub: 'Your AI advisor',               fn: () => navigate('/bontle') },
-              { icon: 'storefront',   title: 'View Store',   sub: 'See the live store',            fn: () => navigate('/shop') },
+              { icon: 'add_circle',    title: 'Add Product',  sub: 'Add to your catalogue',    fn: openAdd },
+              { icon: 'inventory_2',   title: 'All Products', sub: `${totalProducts} products`, fn: () => setView('products') },
+              { icon: 'auto_awesome',  title: 'Bontle AI',    sub: 'Your AI advisor',           fn: () => navigate('/bontle') },
+              { icon: 'storefront',    title: 'View Store',   sub: 'See the live store',        fn: () => navigate('/shop') },
             ].map(a => (
-              <button key={a.title} onClick={a.fn} style={{ ...S.card, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', border: '1px solid #f4f4f5', textAlign: 'left' }}>
+              <button key={a.title} onClick={a.fn}
+                style={{ ...S.card, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', border: '1px solid #f4f4f5', textAlign: 'left', width: '100%' }}>
                 <div style={{ width: '42px', height: '42px', background: '#f5f0ff', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <span className="material-symbols-outlined" style={{ color: '#6b00ad', fontSize: '20px' }}>{a.icon}</span>
                 </div>
@@ -203,12 +221,11 @@ export default function Admin() {
                   <p style={{ fontWeight: 700, fontSize: '13px', color: '#18181b', margin: '0 0 1px' }}>{a.title}</p>
                   <p style={{ fontSize: '11px', color: '#a1a1aa', margin: 0 }}>{a.sub}</p>
                 </div>
-                <span className="material-symbols-outlined" style={{ color: '#d4d4d8', fontSize: '18px' }}>chevron_right</span>
+                <span className="material-symbols-outlined" style={{ color: '#d4d4d8', fontSize: '18px', flexShrink: 0 }}>chevron_right</span>
               </button>
             ))}
           </div>
 
-          {/* Category breakdown */}
           <p style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '12px' }}>By Category</p>
           <div style={{ ...S.card, padding: '20px' }}>
             {CATEGORIES.map(cat => {
@@ -244,13 +261,15 @@ export default function Admin() {
                   </button>
                 )}
               </div>
-              <button onClick={openAdd} style={{ background: '#6b00ad', color: 'white', border: 'none', cursor: 'pointer', padding: '8px 16px', borderRadius: '14px', fontWeight: 700, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
+              <button onClick={openAdd}
+                style={{ background: '#6b00ad', color: 'white', border: 'none', cursor: 'pointer', padding: '8px 16px', borderRadius: '14px', fontWeight: 700, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>Add
               </button>
             </div>
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
               {['All', ...CATEGORIES].map(cat => (
-                <button key={cat} onClick={() => setFilterCat(cat)} style={{ flexShrink: 0, padding: '5px 12px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 700, background: filterCat === cat ? '#18181b' : '#f4f4f5', color: filterCat === cat ? 'white' : '#71717a' }}>
+                <button key={cat} onClick={() => setFilterCat(cat)}
+                  style={{ flexShrink: 0, padding: '5px 12px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 700, background: filterCat === cat ? '#18181b' : '#f4f4f5', color: filterCat === cat ? 'white' : '#71717a' }}>
                   {cat}
                 </button>
               ))}
@@ -329,47 +348,119 @@ export default function Admin() {
               </div>
             )}
 
+            {/* Image preview */}
             <div style={{ aspectRatio: '16/7', background: '#f4f4f5', borderRadius: '18px', overflow: 'hidden' }}>
               {form.image
                 ? <img src={form.image} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 : <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#d4d4d8' }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '48px' }}>image</span>
-                    <p style={{ fontSize: '12px', fontWeight: 700, margin: 0 }}>Paste an image URL below to preview</p>
+                    <p style={{ fontSize: '12px', fontWeight: 700, margin: 0 }}>Image preview</p>
                   </div>}
             </div>
 
-            <Fld label="Product Name *"><input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="e.g. Cerave Foaming Face Wash" style={S.inp} /></Fld>
+            <Fld label="Product Name *">
+              <input type="text" value={form.name}
+                onChange={e => setForm({...form, name: e.target.value})}
+                placeholder="e.g. Cerave Foaming Face Wash" style={S.inp} />
+            </Fld>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
               <Fld label="Category *">
-                <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} style={S.inp}>
+                <select value={form.category}
+                  onChange={e => setForm({...form, category: e.target.value})} style={S.inp}>
                   {CATEGORIES.map(c => <option key={c}>{c}</option>)}
                 </select>
               </Fld>
-              <Fld label="Price (M) *"><input type="number" value={form.price || ''} onChange={e => setForm({...form, price: Number(e.target.value)})} placeholder="0" style={S.inp} /></Fld>
+              <Fld label="Price (M) *">
+                <input type="number" value={form.price || ''}
+                  onChange={e => setForm({...form, price: Number(e.target.value)})}
+                  placeholder="0" style={S.inp} />
+              </Fld>
             </div>
 
-            <Fld label="Image URL"><input type="url" value={form.image} onChange={e => setForm({...form, image: e.target.value})} placeholder="https://images.unsplash.com/..." style={S.inp} /></Fld>
-            <Fld label="Description"><textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Short description..." style={{ ...S.inp, height: '88px', resize: 'none' }} /></Fld>
-            <Fld label="Benefits (comma-separated)"><input type="text" value={form.benefitsRaw} onChange={e => setForm({...form, benefitsRaw: e.target.value})} placeholder="e.g. Moisturizing, SPF 15" style={S.inp} /></Fld>
-            <Fld label="Ingredients (comma-separated)"><input type="text" value={form.ingredientsRaw} onChange={e => setForm({...form, ingredientsRaw: e.target.value})} placeholder="e.g. Ceramides, Hyaluronic Acid" style={S.inp} /></Fld>
+            {/* Image upload + URL */}
+            <Fld label="Product Image">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <label style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                  background: uploadingImg ? '#f4f4f5' : '#f5f0ff',
+                  border: '2px dashed #6b00ad', borderRadius: '14px',
+                  padding: '16px', cursor: uploadingImg ? 'not-allowed' : 'pointer',
+                  color: '#6b00ad', fontWeight: 700, fontSize: '13px', transition: 'background 0.2s',
+                }}>
+                  {uploadingImg
+                    ? <><Spinner /><span>Uploading...</span></>
+                    : <><span className="material-symbols-outlined" style={{ fontSize: '20px' }}>upload</span><span>Upload Photo from Device</span></>}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleImageUpload}
+                    disabled={uploadingImg}
+                  />
+                </label>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ flex: 1, height: '1px', background: '#e4e4e7' }} />
+                  <span style={{ fontSize: '11px', color: '#a1a1aa', fontWeight: 700 }}>OR</span>
+                  <div style={{ flex: 1, height: '1px', background: '#e4e4e7' }} />
+                </div>
+
+                <input
+                  type="url"
+                  value={form.image}
+                  onChange={e => setForm({...form, image: e.target.value})}
+                  placeholder="Paste image URL e.g. https://images.unsplash.com/..."
+                  style={S.inp}
+                />
+              </div>
+            </Fld>
+
+            <Fld label="Description">
+              <textarea value={form.description}
+                onChange={e => setForm({...form, description: e.target.value})}
+                placeholder="Short description of the product..."
+                style={{ ...S.inp, height: '88px', resize: 'none' }} />
+            </Fld>
+
+            <Fld label="Benefits (comma-separated)">
+              <input type="text" value={form.benefitsRaw}
+                onChange={e => setForm({...form, benefitsRaw: e.target.value})}
+                placeholder="e.g. Moisturizing, SPF 15, Lightweight" style={S.inp} />
+            </Fld>
+
+            <Fld label="Ingredients (comma-separated)">
+              <input type="text" value={form.ingredientsRaw}
+                onChange={e => setForm({...form, ingredientsRaw: e.target.value})}
+                placeholder="e.g. Ceramides, Hyaluronic Acid" style={S.inp} />
+            </Fld>
 
             <div>
               <p style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '10px' }}>Product Flags</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px' }}>
-                <Tog label="Active"      checked={form.isActive}      color="#22c55e" onChange={v => setForm({...form, isActive:v})} />
-                <Tog label="New Arrival" checked={form.isNew}         color="#ff2d55" onChange={v => setForm({...form, isNew:v})} />
-                <Tog label="Featured"    checked={form.isFeatured}    color="#6b00ad" onChange={v => setForm({...form, isFeatured:v})} />
-                <Tog label="On Sale"     checked={form.isOnSale}      color="#f59e0b" onChange={v => setForm({...form, isOnSale:v})} />
-                <Tog label="Recommended" checked={form.isRecommended} color="#6b00ad" onChange={v => setForm({...form, isRecommended:v})} />
+                <Tog label="Active"      checked={form.isActive}      color="#22c55e" onChange={v => setForm({...form, isActive: v})} />
+                <Tog label="New Arrival" checked={form.isNew}         color="#ff2d55" onChange={v => setForm({...form, isNew: v})} />
+                <Tog label="Featured"    checked={form.isFeatured}    color="#6b00ad" onChange={v => setForm({...form, isFeatured: v})} />
+                <Tog label="On Sale"     checked={form.isOnSale}      color="#f59e0b" onChange={v => setForm({...form, isOnSale: v})} />
+                <Tog label="Recommended" checked={form.isRecommended} color="#6b00ad" onChange={v => setForm({...form, isRecommended: v})} />
               </div>
             </div>
 
-            <button onClick={view === 'add' ? handleSaveNew : handleSaveEdit} disabled={saving}
-              style={{ width: '100%', height: '52px', borderRadius: '26px', border: 'none', background: saving ? '#a1a1aa' : '#18181b', color: 'white', fontWeight: 900, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.1em', cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <button
+              onClick={view === 'add' ? handleSaveNew : handleSaveEdit}
+              disabled={saving || uploadingImg}
+              style={{
+                width: '100%', height: '52px', borderRadius: '26px', border: 'none',
+                background: (saving || uploadingImg) ? '#a1a1aa' : '#18181b',
+                color: 'white', fontWeight: 900, fontSize: '13px',
+                textTransform: 'uppercase', letterSpacing: '0.1em',
+                cursor: (saving || uploadingImg) ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              }}>
               {saving
                 ? <><Spinner />Saving...</>
-                : <><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>save</span>{view === 'add' ? 'Add Product' : 'Save Changes'}</>}
+                : <><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>save</span>
+                    {view === 'add' ? 'Add Product' : 'Save Changes'}</>}
             </button>
           </div>
         </div>
@@ -389,7 +480,9 @@ export default function Admin() {
 function Fld({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>{label}</label>
+      <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
+        {label}
+      </label>
       {children}
     </div>
   );
@@ -408,5 +501,7 @@ function Tog({ label, checked, onChange, color }: { label: string; checked: bool
 }
 
 function Spinner() {
-  return <div style={{ width: '18px', height: '18px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />;
+  return (
+    <div style={{ width: '18px', height: '18px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
+  );
 }
