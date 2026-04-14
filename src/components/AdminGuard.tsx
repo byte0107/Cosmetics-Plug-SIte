@@ -1,19 +1,18 @@
 import { useState } from 'react';
 
-const ADMIN_PASSWORD = 'cosmeticplug2026';
+const ADMIN_PASSWORD = 'cosmetic2025';
 
 export default function AdminGuard({ children }: { children: React.ReactNode }) {
-  const [authed, setAuthed] = useState(
-    () => sessionStorage.getItem('admin_auth') === 'true'
-  );
+  const [authed, setAuthed] = useState(false);
   const [password, setPassword] = useState('');
-  const [error, setError]       = useState(false);
+  const [error, setError] = useState(false);
 
-  if (authed) return <>{children}</>;
+  if (authed) {
+    return <div style={{ width: '100%', minHeight: '100vh' }}>{children}</div>;
+  }
 
   function handleLogin() {
     if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem('admin_auth', 'true');
       setAuthed(true);
     } else {
       setError(true);
@@ -24,20 +23,53 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
   return (
     <div
-      className="min-h-screen w-full flex items-center justify-center p-6"
-      style={{ background: '#09090b' }}
+      style={{
+        minHeight: '100vh',
+        width: '100%',
+        background: '#09090b',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+      }}
     >
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary rounded-[28px] flex items-center justify-center mx-auto mb-4 shadow-2xl shadow-primary/40">
-            <span className="material-symbols-outlined text-white text-3xl">storefront</span>
+      <div style={{ width: '100%', maxWidth: '360px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div
+            style={{
+              width: '64px', height: '64px',
+              background: '#6b00ad',
+              borderRadius: '28px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 16px',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ color: 'white', fontSize: '32px' }}>
+              storefront
+            </span>
           </div>
-          <h1 className="text-2xl font-black text-white tracking-tight">Shop Manager</h1>
-          <p className="text-zinc-500 text-sm mt-1 font-medium">Cosmetic Plug · Roma, Maseru</p>
+          <h1 style={{ color: 'white', fontSize: '24px', fontWeight: 900, margin: '0 0 4px' }}>
+            Shop Manager
+          </h1>
+          <p style={{ color: '#71717a', fontSize: '14px', margin: 0 }}>
+            Cosmetic Plug · Roma, Maseru
+          </p>
         </div>
 
-        <div className="rounded-[28px] p-6 border border-zinc-800" style={{ background: '#18181b' }}>
-          <label className="text-[11px] font-black text-zinc-500 uppercase tracking-wider block mb-2">
+        <div
+          style={{
+            background: '#18181b',
+            border: '1px solid #3f3f46',
+            borderRadius: '28px',
+            padding: '24px',
+          }}
+        >
+          <label style={{
+            display: 'block', color: '#71717a',
+            fontSize: '11px', fontWeight: 700,
+            textTransform: 'uppercase', letterSpacing: '0.1em',
+            marginBottom: '8px',
+          }}>
             Admin Password
           </label>
           <input
@@ -47,29 +79,44 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
             onKeyDown={e => e.key === 'Enter' && handleLogin()}
             placeholder="Enter password"
             autoFocus
-            className={`w-full rounded-2xl px-4 py-3 text-sm font-bold text-white outline-none transition-all mb-3 placeholder:text-zinc-600 ${
-              error
-                ? 'border-2 border-red-500'
-                : 'border border-zinc-700 focus:border-primary'
-            }`}
-            style={{ background: '#27272a' }}
+            style={{
+              width: '100%',
+              background: '#27272a',
+              border: error ? '2px solid #ef4444' : '1px solid #52525b',
+              borderRadius: '16px',
+              padding: '12px 16px',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: 700,
+              outline: 'none',
+              marginBottom: '12px',
+              boxSizing: 'border-box',
+            }}
           />
           {error && (
-            <p className="text-red-400 text-xs font-bold mb-3 text-center">
+            <p style={{ color: '#f87171', fontSize: '12px', fontWeight: 700, textAlign: 'center', marginBottom: '12px' }}>
               Incorrect password. Try again.
             </p>
           )}
           <button
             onClick={handleLogin}
-            className="w-full bg-primary text-white h-12 rounded-2xl font-black text-sm uppercase tracking-wider active:scale-[0.98] transition-all shadow-lg shadow-primary/30"
+            style={{
+              width: '100%',
+              background: '#6b00ad',
+              color: 'white',
+              height: '48px',
+              borderRadius: '16px',
+              border: 'none',
+              fontWeight: 900,
+              fontSize: '13px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              cursor: 'pointer',
+            }}
           >
             Sign In →
           </button>
         </div>
-
-        <p className="text-center text-zinc-600 text-xs mt-6 font-medium">
-          Cosmetic Plug · Roma, Maseru
-        </p>
       </div>
     </div>
   );
