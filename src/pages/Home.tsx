@@ -83,7 +83,7 @@ export default function Home() {
       </div>
 
       {/* ── PRODUCT SECTIONS ── */}
-      <ProductSection title="New in Stock"        products={newProducts}         currency={currency} />
+      <ProductSection title="New in Stock"        products={newProducts}         currency={currency} autoSlide />
       <ProductSection title="Featured Items"      products={featuredProducts}    currency={currency} />
 
       {/* ── BONTLE AI BANNER ── */}
@@ -113,7 +113,7 @@ export default function Home() {
         </div>
       </div>
 
-      <ProductSection title="On Sale"             products={saleProducts}        currency={currency} />
+      <ProductSection title="On Sale"             products={saleProducts}        currency={currency} autoSlide />
       <ProductSection title="Highly Recommended"  products={recommendedProducts} currency={currency} />
 
       {/* ── PLUG REWARDS BANNER ── */}
@@ -136,24 +136,45 @@ export default function Home() {
         <div className="px-4 md:px-10 mb-4">
           <h3 className="text-2xl md:text-3xl font-black text-zinc-900 tracking-tighter">Campus Love</h3>
         </div>
-        <div className="flex gap-4 overflow-x-auto hide-scrollbar px-4 md:px-10 pb-4">
-          {REVIEWS.map(review => (
-            <div key={review.id}
-              className="min-w-[260px] md:min-w-[320px] bg-white border border-zinc-100 rounded-[28px] p-5 shadow-sm">
-              <div className="flex gap-1 text-accent mb-3">
-                {[...Array(review.rating)].map((_, i) => (
-                  <span key={i} className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                ))}
-              </div>
-              <p className="text-sm text-zinc-700 font-medium mb-4 leading-relaxed">"{review.text}"</p>
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-zinc-100 rounded-full flex items-center justify-center text-sm font-black text-zinc-400">
-                  {review.name.charAt(0)}
+        <div className="flex overflow-hidden group pb-4">
+          <div className="flex gap-4 animate-marquee-slow group-hover:[animation-play-state:paused] shrink-0 px-2">
+            {[...REVIEWS, ...REVIEWS, ...REVIEWS].map((review, i) => (
+              <div key={`${review.id}-${i}`}
+                className="min-w-[260px] md:min-w-[320px] bg-white border border-zinc-100 rounded-[28px] p-5 shadow-sm">
+                <div className="flex gap-1 text-accent mb-3">
+                  {[...Array(review.rating)].map((_, j) => (
+                    <span key={j} className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                  ))}
                 </div>
-                <span className="text-sm font-black text-zinc-900">{review.name}</span>
+                <p className="text-sm text-zinc-700 font-medium mb-4 leading-relaxed">"{review.text}"</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-zinc-100 rounded-full flex items-center justify-center text-sm font-black text-zinc-400">
+                    {review.name.charAt(0)}
+                  </div>
+                  <span className="text-sm font-black text-zinc-900">{review.name}</span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+          <div className="flex gap-4 animate-marquee-slow group-hover:[animation-play-state:paused] shrink-0 px-2" aria-hidden="true">
+            {[...REVIEWS, ...REVIEWS, ...REVIEWS].map((review, i) => (
+              <div key={`${review.id}-${i}-dup`}
+                className="min-w-[260px] md:min-w-[320px] bg-white border border-zinc-100 rounded-[28px] p-5 shadow-sm">
+                <div className="flex gap-1 text-accent mb-3">
+                  {[...Array(review.rating)].map((_, j) => (
+                    <span key={j} className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                  ))}
+                </div>
+                <p className="text-sm text-zinc-700 font-medium mb-4 leading-relaxed">"{review.text}"</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-zinc-100 rounded-full flex items-center justify-center text-sm font-black text-zinc-400">
+                    {review.name.charAt(0)}
+                  </div>
+                  <span className="text-sm font-black text-zinc-900">{review.name}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -175,12 +196,37 @@ export default function Home() {
   );
 }
 
-function ProductSection({ title, products, currency }: { title: string; products: Product[]; currency: string }) {
+function ProductSection({ title, products, currency, autoSlide = false }: { title: string; products: Product[]; currency: string; autoSlide?: boolean }) {
   const { addToCart } = useStore();
   if (products.length === 0) return null;
 
   const displayPrice = (price: number) =>
     currency === 'ZAR' ? `R ${(price * 0.74).toFixed(2)}` : `M ${price.toFixed(2)}`;
+
+  const ProductCard = ({ product }: { product: Product }) => (
+    <div className="min-w-[150px] md:min-w-[200px] max-w-[200px] bg-white rounded-[28px] overflow-hidden border border-zinc-100 shadow-sm hover:shadow-xl transition-all duration-300 shrink-0">
+      <Link to={`/product/${product.id}`} className="block relative aspect-[4/5] bg-zinc-50">
+        <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+        {product.isNew && (
+          <span className="absolute top-2 left-2 bg-accent text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-xl tracking-wider">New</span>
+        )}
+        {product.isOnSale && (
+          <span className="absolute top-2 right-2 bg-primary text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-xl tracking-wider">Sale</span>
+        )}
+      </Link>
+      <div className="p-3 md:p-4">
+        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.2em] block mb-1">{product.category}</span>
+        <h4 className="font-black text-sm text-zinc-900 leading-tight mb-3 line-clamp-2">{product.name}</h4>
+        <div className="flex items-center justify-between">
+          <span className="font-black text-primary text-sm">{displayPrice(product.price)}</span>
+          <button onClick={() => addToCart(product)}
+            className="w-8 h-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center hover:bg-primary transition-colors active:scale-95 shadow-md">
+            <span className="material-symbols-outlined text-[18px]">add</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="py-5">
@@ -188,33 +234,26 @@ function ProductSection({ title, products, currency }: { title: string; products
         <h3 className="text-xl md:text-3xl font-black text-zinc-900 tracking-tighter">{title}</h3>
         <Link to="/shop" className="text-xs font-black text-primary uppercase tracking-wider hover:underline">View All</Link>
       </div>
-      <div className="flex gap-4 overflow-x-auto hide-scrollbar px-4 md:px-10 pb-4">
-        {products.map(product => (
-          <div key={product.id}
-            className="min-w-[150px] md:min-w-[200px] max-w-[200px] bg-white rounded-[28px] overflow-hidden border border-zinc-100 shadow-sm hover:shadow-xl transition-all duration-300 shrink-0">
-            <Link to={`/product/${product.id}`} className="block relative aspect-[4/5] bg-zinc-50">
-              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-              {product.isNew && (
-                <span className="absolute top-2 left-2 bg-accent text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-xl tracking-wider">New</span>
-              )}
-              {product.isOnSale && (
-                <span className="absolute top-2 right-2 bg-primary text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-xl tracking-wider">Sale</span>
-              )}
-            </Link>
-            <div className="p-3 md:p-4">
-              <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.2em] block mb-1">{product.category}</span>
-              <h4 className="font-black text-sm text-zinc-900 leading-tight mb-3 line-clamp-2">{product.name}</h4>
-              <div className="flex items-center justify-between">
-                <span className="font-black text-primary text-sm">{displayPrice(product.price)}</span>
-                <button onClick={() => addToCart(product)}
-                  className="w-8 h-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center hover:bg-primary transition-colors active:scale-95 shadow-md">
-                  <span className="material-symbols-outlined text-[18px]">add</span>
-                </button>
-              </div>
-            </div>
+      {autoSlide ? (
+        <div className="flex overflow-hidden group pb-4">
+          <div className="flex gap-4 animate-marquee-slow group-hover:[animation-play-state:paused] shrink-0 px-2">
+            {[...products, ...products, ...products, ...products].map((product, i) => (
+              <ProductCard key={`${product.id}-${i}`} product={product} />
+            ))}
           </div>
-        ))}
-      </div>
+          <div className="flex gap-4 animate-marquee-slow group-hover:[animation-play-state:paused] shrink-0 px-2" aria-hidden="true">
+            {[...products, ...products, ...products, ...products].map((product, i) => (
+              <ProductCard key={`${product.id}-${i}-dup`} product={product} />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="flex gap-4 overflow-x-auto hide-scrollbar px-4 md:px-10 pb-4">
+          {products.map(product => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

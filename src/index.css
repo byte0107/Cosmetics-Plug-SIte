@@ -9,6 +9,7 @@
   --font-sans: "Plus Jakarta Sans", sans-serif;
 
   --animate-marquee: marquee 20s linear infinite;
+  --animate-marquee-slow: marquee 40s linear infinite;
 
   @keyframes marquee {
     0% { transform: translateX(0%); }
